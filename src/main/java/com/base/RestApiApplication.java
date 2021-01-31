@@ -1,6 +1,7 @@
 package com.base;
 
 import ch.qos.logback.core.net.SyslogOutputStream;
+import com.base.security.AppProperties;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
@@ -24,9 +25,9 @@ public class RestApiApplication {
             System.out.println("Let's inspect the beans provided by Spring Boot:");
             String[] beansNames = ctx.getBeanDefinitionNames();
             Arrays.sort(beansNames);
-            Arrays.asList(beansNames).stream().map(bean -> {
+            /*Arrays.asList(beansNames).stream().map(bean -> {
                 return bean + " : ";
-            }).forEach(System.out::print);
+            }).forEach(System.out::print);*/
         };
     }
 
@@ -35,4 +36,13 @@ public class RestApiApplication {
         return new BCryptPasswordEncoder();
     }
 
+    @Bean
+    public SpringApplicationContext springApplicationContext() {
+        return new SpringApplicationContext();
+    }
+
+    @Bean(name = "AppProperties")
+    public AppProperties appProperties() {
+        return new AppProperties();
+    }
 }

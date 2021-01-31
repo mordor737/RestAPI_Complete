@@ -1,7 +1,7 @@
 package com.base.service.impl;
 
 import com.base.io.entity.UserEntity;
-import com.base.repositories.UserRepository;
+import com.base.io.repositories.UserRepository;
 import com.base.service.UserService;
 import com.base.shared.Utils;
 import com.base.shared.dto.UserDto;
@@ -48,9 +48,30 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
+    public UserDto getUser(String email) {
+        UserEntity userEntity = userRepository.findByEmail(email);
+        UserDto returnValue = new UserDto();
+        BeanUtils.copyProperties(userEntity, returnValue);
+        return returnValue;
+    }
+
+
+    @Override
     public UserDetails loadUserByUsername(String email) throws UsernameNotFoundException {
         UserEntity userEntity = userRepository.findByEmail(email);
         if (userEntity == null) throw new UsernameNotFoundException(email);
         return new User(userEntity.getEmail(), userEntity.getEncryptedPassword(), new ArrayList<>());
+    }
+
+    @Override
+    public UserDto getUserByUserId(String id) {
+        UserDto returnValue = new UserDto();
+        UserEntity userEntity = userRepository.findByUserId(id);
+
+        if (userEntity == null) throw new UsernameNotFoundException(id);
+
+        BeanUtils.copyProperties(userEntity, returnValue);
+
+        return returnValue;
     }
 }
