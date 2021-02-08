@@ -1,104 +1,117 @@
 package com.base.io.entity;
 
+import java.util.List;
+import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
 import java.io.Serializable;
+import javax.persistence.OneToMany;
 
 @Entity(name = "users")
 public class UserEntity implements Serializable {
-    private static final long serialVersionUID = 7566696768783548773L;
 
-    @Id
-    @GeneratedValue
-    private long id;
+  private static final long serialVersionUID = 7566696768783548773L;
 
-    @Column(nullable = false)
-    private String userId;
+  @Id
+  @GeneratedValue
+  private long id;
 
-    @Column(nullable = false, length = 50)
-    private String firstName;
+  @Column(nullable = false)
+  private String userId;
 
-    @Column(nullable = false, length = 50)
-    private String lastName;
+  @Column(nullable = false, length = 50)
+  private String firstName;
 
-    @Column(nullable = false, length = 120, unique = true) // unique = true
-    private String email;
+  @Column(nullable = false, length = 50)
+  private String lastName;
 
-    @Column(nullable = false)
-    private String encryptedPassword;
+  @Column(nullable = false, length = 120, unique = true) // unique = true
+  private String email;
 
-    private String emailVerificationToken;
+  @Column(nullable = false)
+  private String encryptedPassword;
 
-    @Column(nullable = false)
-    private Boolean emailVerificationStatus = false;
+  private String emailVerificationToken;
 
-    public static long getSerialVersionUID() {
-        return serialVersionUID;
-    }
+  @Column(nullable = true/*, columnDefinition = "boolean default false"*/)
+  private Boolean emailVerificationStatus=false;
 
-    public long getId() {
-        return id;
-    }
+  @OneToMany(mappedBy = "userDetails", cascade = CascadeType.ALL)
 
-    public void setId(long id) {
-        this.id = id;
-    }
+  private List<AddressEntity> addresses;
 
-    public String getUserId() {
-        return userId;
-    }
 
-    public void setUserId(String userId) {
-        this.userId = userId;
-    }
+  public long getId() {
+    return id;
+  }
 
-    public String getFirstName() {
-        return firstName;
-    }
+  public void setId(long id) {
+    this.id = id;
+  }
 
-    public void setFirstName(String firstName) {
-        this.firstName = firstName;
-    }
+  public String getUserId() {
+    return userId;
+  }
 
-    public String getLastName() {
-        return lastName;
-    }
+  public void setUserId(String userId) {
+    this.userId = userId;
+  }
 
-    public void setLastName(String lastName) {
-        this.lastName = lastName;
-    }
+  public String getFirstName() {
+    return firstName;
+  }
 
-    public String getEmail() {
-        return email;
-    }
+  public void setFirstName(String firstName) {
+    this.firstName = firstName;
+  }
 
-    public void setEmail(String email) {
-        this.email = email;
-    }
+  public String getLastName() {
+    return lastName;
+  }
 
-    public String getEncryptedPassword() {
-        return encryptedPassword;
-    }
+  public void setLastName(String lastName) {
+    this.lastName = lastName;
+  }
 
-    public void setEncryptedPassword(String encryptedPassword) {
-        this.encryptedPassword = encryptedPassword;
-    }
+  public String getEmail() {
+    return email;
+  }
 
-    public String getEmailVerificationToken() {
-        return emailVerificationToken;
-    }
+  public void setEmail(String email) {
+    this.email = email;
+  }
 
-    public void setEmailVerificationToken(String emailVerificationToken) {
-        this.emailVerificationToken = emailVerificationToken;
-    }
+  public String getEncryptedPassword() {
+    return encryptedPassword;
+  }
 
-    public Boolean getEmailVerificationStatus() {
-        return emailVerificationStatus;
-    }
+  public void setEncryptedPassword(String encryptedPassword) {
+    this.encryptedPassword = encryptedPassword;
+  }
 
-    public void setEmailVerificationStatus(Boolean emailVerificationStatus) {
-        this.emailVerificationStatus = emailVerificationStatus;
-    }
+  public String getEmailVerificationToken() {
+    return emailVerificationToken;
+  }
+
+  public void setEmailVerificationToken(String emailVerificationToken) {
+    this.emailVerificationToken = emailVerificationToken;
+  }
+
+  public Boolean getEmailVerificationStatus() {
+    return emailVerificationStatus;
+  }
+
+  public void setEmailVerificationStatus(Boolean emailVerificationStatus) {
+    this.emailVerificationStatus = emailVerificationStatus;
+  }
+
+  public List<AddressEntity> getAddresses() {
+    return addresses;
+  }
+
+  public void setAddresses(List<AddressEntity> addresses) {
+    this.addresses = addresses;
+  }
 }
