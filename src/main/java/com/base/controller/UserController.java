@@ -1,6 +1,5 @@
 package com.base.controller;
 
-import com.base.exceptions.UserServiceException;
 import com.base.service.AddressService;
 import com.base.service.UserService;
 import com.base.shared.dto.AddressDto;
@@ -13,21 +12,27 @@ import java.util.ArrayList;
 import org.modelmapper.ModelMapper;
 import org.modelmapper.TypeToken;
 import org.springframework.beans.BeanUtils;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.hateoas.CollectionModel;
+import org.springframework.hateoas.EntityModel;
+import org.springframework.hateoas.Link;
+import org.springframework.hateoas.server.mvc.WebMvcLinkBuilder;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.Arrays;
 import java.util.List;
 
 @RestController
-@RequestMapping("/users") // http://localhost:8080/users
+@RequestMapping("/users") // http://localhost:8080/mobile-app-ws/users
 public class UserController {
 
-    @Autowired
     UserService userService;
-
-    @Autowired
     AddressService addressService;
+
+    UserController(UserService userService, AddressService addressService) {
+        this.userService = userService;
+        this.addressService = addressService;
+    }
 
     @GetMapping(path = "/{id}", produces = {MediaType.APPLICATION_XML_VALUE,
             MediaType.APPLICATION_JSON_VALUE})
@@ -47,10 +52,11 @@ public class UserController {
             produces = {MediaType.APPLICATION_XML_VALUE, MediaType.APPLICATION_JSON_VALUE}
     )
     public UserRest createUser(@RequestBody UserDetailsRequestModel userDetails) throws Exception {
-        UserRest returnValue = new UserRest();
+        UserRest returnValue;
 
-        //UserDto userDto = new UserDto();
-        //BeanUtils.copyProperties(userDetails, userDto);
+        /*UserDto userDto = new UserDto();
+        BeanUtils.copyProperties(userDetails, userDto);*/
+
         ModelMapper modelMapper = new ModelMapper();
         UserDto userDto = modelMapper.map(userDetails, UserDto.class);
 
@@ -93,8 +99,8 @@ public class UserController {
     @GetMapping(
             produces = {MediaType.APPLICATION_XML_VALUE, MediaType.APPLICATION_JSON_VALUE}
     )
-    public List<UserRest> getUsers(@RequestParam(value = "page", defaultValue = "25") int page,
-                                   @RequestParam(value = "limit", defaultValue = "0") int limit) {
+    public List<UserRest> getUsers(@RequestParam(value = "page", defaultValue = "0") int page,
+                                   @RequestParam(value = "limit", defaultValue = "25") int limit) {
         List<UserRest> returnValue = new ArrayList<>();
 
         List<UserDto> users = userService.getUsers(page, limit);
@@ -110,7 +116,7 @@ public class UserController {
     //http://localhost:8080/mobile-app-ws/users/jjdslkoalk/addresses
     @GetMapping(path = "/{id}/addresses",
             produces = {MediaType.APPLICATION_XML_VALUE, MediaType.APPLICATION_JSON_VALUE})
-    public List<AddressesRest> getUserAddresses(@PathVariable String id) {
+    public CollectionModel<AddressesRest> getUserAddresses(@PathVariable String id) {
         List<AddressesRest> returnValue = new ArrayList<>();
 
         List<AddressDto> addressesDto = addressService.getAddresses(id);
@@ -119,20 +125,47 @@ public class UserController {
             java.lang.reflect.Type listType = new TypeToken<List<AddressesRest>>() {
             }.getType();
             returnValue = new ModelMapper().map(addressesDto, listType);
+
+            for (AddressesRest addressRest : returnValue) {
+                Link selfLink = WebMvcLinkBuilder.linkTo(WebMvcLinkBuilder.methodOn(UserController.class).getUserAddress(id, addressRest.getAddressesId()))
+                        .withSelfRel();
+                addressRest.add(selfLink);
+            }
         }
-        return returnValue;
+
+        //https://localhost:8080/users/<id>
+        Link userLink = WebMvcLinkBuilder.linkTo(UserController.class).slash(id).withRel("user");
+        //https://localhost:8080/users/<id>/addresses/<addressId>
+        Link selfLink = WebMvcLinkBuilder.linkTo(WebMvcLinkBuilder.methodOn(UserController.class)
+                .getUserAddresses(id))
+                .withSelfRel();
+        return CollectionModel.of(returnValue, userLink, selfLink);
     }
 
     //http://localhost:8080/mobile-app-ws/users/jjdslkoalk/addresses/lskdmolkenfg
-    @GetMapping(path = "/{id}/addresses/{addressId}",
+    @GetMapping(path = "/{userId}/addresses/{addressId}",
             produces = {MediaType.APPLICATION_XML_VALUE, MediaType.APPLICATION_JSON_VALUE})
-    public AddressesRest getUserAddress(@PathVariable String addressId) {
-        List<AddressesRest> returnValue = new ArrayList<>();
-
+    public EntityModel<AddressesRest> getUserAddress(@PathVariable String userId, @PathVariable String addressId) {
         AddressDto addressesDto = addressService.getAddress(addressId);
 
         ModelMapper modelMapper = new ModelMapper();
-        return modelMapper.map(addressesDto, AddressesRest.class);
+        AddressesRest returnValue = modelMapper.map(addressesDto, AddressesRest.class);
+
+        //https://localhost:8080/users/<id>
+        Link userLink = WebMvcLinkBuilder.linkTo(UserController.class).slash(userId).withRel("user");
+        //https://localhost:8080/users/<id>/addresses
+        Link userAddressesLink = WebMvcLinkBuilder.linkTo(WebMvcLinkBuilder.methodOn(UserController.class).getUserAddresses(userId))
+                //.slash(id)
+                //.slash("addresses")
+                .withRel("addresses");
+        //https://localhost:8080/users/<id>/addresses/<addressId>
+        Link selfLink = WebMvcLinkBuilder.linkTo(WebMvcLinkBuilder.methodOn(UserController.class).getUserAddress(userId, addressId))
+                //.slash(id)
+                //.slash("addresses")
+                //.slash(addressId)
+                .withSelfRel();
+
+        return EntityModel.of(returnValue, Arrays.asList(userLink, userAddressesLink, selfLink));
     }
 
     //http://localhost:8080/mobile-app-ws/users/email-verification?token=wvrsmg

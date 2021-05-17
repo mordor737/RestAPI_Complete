@@ -4,6 +4,7 @@ import com.base.exceptions.UserServiceException;
 import com.base.io.entity.UserEntity;
 import com.base.io.repositories.UserRepository;
 import com.base.service.UserService;
+import com.base.shared.AmazonSES;
 import com.base.shared.Utils;
 import com.base.shared.dto.AddressDto;
 import com.base.shared.dto.UserDto;
@@ -29,14 +30,17 @@ import java.util.ArrayList;
 @Service
 public class UserServiceImpl implements UserService {
 
-    @Autowired
     UserRepository userRepository;
 
-    @Autowired
     Utils utils;
 
-    @Autowired
     BCryptPasswordEncoder bCryptPasswordEncoder;
+
+    UserServiceImpl(UserRepository userRepository, Utils utils, BCryptPasswordEncoder bCryptPasswordEncoder) {
+        this.userRepository = userRepository;
+        this.utils = utils;
+        this.bCryptPasswordEncoder = bCryptPasswordEncoder;
+    }
 
     @Override
     public UserDto createUser(UserDto user) {
@@ -66,6 +70,8 @@ public class UserServiceImpl implements UserService {
 
         UserDto returnValue = modelMapper.map(storedUserDetails, UserDto.class);
 
+        //new AmazonSES().verifyEmail(returnValue);
+
         return returnValue;
     }
 
@@ -84,6 +90,7 @@ public class UserServiceImpl implements UserService {
         if (userEntity == null) {
             throw new UsernameNotFoundException(email);
         }
+        //return new User(userEntity.getEmail(), userEntity.getEncryptedPassword(), userEntity.getEmailVerificationStatus(), true, true, true, new ArrayList<>());
         return new User(userEntity.getEmail(), userEntity.getEncryptedPassword(), userEntity.getEmailVerificationStatus(), true, true, true, new ArrayList<>());
     }
 
